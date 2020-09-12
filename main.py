@@ -1,3 +1,6 @@
+# NoRichardItsLinux - A reddit bot for the famous GNU/Linux copypasta
+# By Daniel, licensed under GPLv3
+
 import praw
 import os
 
@@ -24,6 +27,7 @@ Be grateful for your abilities and your incredible success and your considerable
 Thanks for listening.
 """
 
+# Get a list of previously replied comments, as to not reply to one comment twice
 def getSavedComments():
 	if not os.path.isfile("comments_replied_to.txt"):
 		print("No save file detected")
@@ -32,13 +36,13 @@ def getSavedComments():
 		with open("comments_replied_to.txt", "r") as f:
 			comments_replied_to = f.read()
 			comments_replied_to = comments_replied_to.split("\n")
-			# comments_replied_to = list(None, comments_replied_to)
 			print("Save file found")
 
 	return comments_replied_to
 
 
 def main(comments_replied_to):
+	# Authentication stuff, replace this with your own
 	reddit = praw.Reddit(
 		user_agent="[REDACTED]",
 		client_id="[REDACTED]",
@@ -47,6 +51,7 @@ def main(comments_replied_to):
 		password="[REDACTED]"
 	)
 
+	# Look through all the comments in r/all (it is a lot!)
 	subreddit = reddit.subreddit("all")
 
 	for redditComment in subreddit.stream.comments():
@@ -54,17 +59,21 @@ def main(comments_replied_to):
 
 
 def process_comment(redditComment, comments_replied_to):
+	# Uncapitiilse both the comment and search string
 	normalized_comment = redditComment.body.lower()
-	#normalized_comment = normalized_comment.replace('just ', '')
 
+	# For each comment, check whether the comment matches the search string
 	if falseBelief.lower() in normalized_comment:
+		# Check if bot has already replied to the comment
 		if redditComment.id not in comments_replied_to:
+			# Do the reply
 			print("Replying to: {}".format(redditComment.body))
 			try:
 				redditComment.reply(replyTemplate)
 			except:
 				print("Error occured while sending comment!")
 
+			# Remember to not reply to this comment again
 			comments_replied_to.append(redditComment.id)
 
 			with open("comments_replied_to.txt", "a") as f:
@@ -73,7 +82,6 @@ def process_comment(redditComment, comments_replied_to):
 			print("Ignoring duplicate comment")
 	else:
 		pass
-		# print("FAIL!", normalized_comment, "DOES NOT CONTAIN", falseBelief.lower())
 
 comments_replied_to = getSavedComments()
 
